@@ -1,0 +1,31 @@
+# Lấy đường dẫn thư mục hiện tại
+$currentDirectory = Get-Location
+
+# Đặt tên file và đường dẫn cho file kết quả
+$fileName = "25-Verify Image Profile and VIB Acceptance Levels.txt"
+$filePath = Join-Path -Path $currentDirectory -ChildPath $fileName
+# Lệnh PowerShell bạn muốn thực thi và lưu kết quả vào file văn bản
+$commandOutput1 = write-Output "25-Verify Image Profile and VIB Acceptance Levels"
+$commandOutput1 | Out-File -FilePath $filePath -Encoding UTF8
+
+# List the Software AcceptanceLevel for each host
+foreach ($VMHost in Get-VMHost) {
+    $ESXCli = Get-EsxCli -VMHost $VMHost
+    $ESXCli.software.acceptance.update("CommunitySupported")
+    $acceptanceLevel = $ESXCli.software.acceptance.get()
+    $result = "$VMHost `t AcceptanceLevel: $acceptanceLevel`r`n"
+    $result | Out-File -FilePath $filePath -Append -Encoding UTF8
+}
+
+# List only the vibs which are not at "VMwareCertified" or "VMwareAccepted" or "PartnerSupported" acceptance level
+foreach ($VMHost in Get-VMHost) {
+    $ESXCli = Get-EsxCli -VMHost $VMHost
+    $vibs = $ESXCli.software.vib.list() | Where { ($_.AcceptanceLevel -ne "VMwareCertified") -and ($_.AcceptanceLevel -ne "VMwareAccepted") -and ($_.AcceptanceLevel -ne "PartnerSupported") }
+
+    foreach ($vib in $vibs) {
+        $result = "$VMHost `t Name: $($vib.Name) `t AcceptanceLevel: $($vib.AcceptanceLevel)`r`n"
+        $result | Out-File -FilePath $filePath -Append -Encoding UTF8
+    }
+}
+# Xuất thông báo sau khi ghi kết quả vào file
+Write-Host "Ket qua da duoc xuat vao file: $filePath"

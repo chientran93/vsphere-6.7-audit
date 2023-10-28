@@ -1,0 +1,6 @@
+- Download zip file from https://developer.vmware.com/web/tool/vmware-powercli
+- Extract and copy module to C:\Program Files\WindowsPowerShell\Modules
+- Open Windows Powershell and check module installed with command Get-Module VMware* -ListAvailable"
+- Run command connect-viserver –server "IP address" , fill admin/password admin vCenter
+- Extract script, right click - open powershell here.
+- Run command .\00-RunAll.ps1
